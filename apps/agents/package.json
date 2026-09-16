@@ -1,0 +1,21 @@
+{
+  "name": "@shop-assist/agents",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run python -m agents.main",
+    "dev:voice": "uv run python -m agents.voice.agent",
+    "dev:chat": "uv run python -m agents.chat.agent",
+    "dev:worker": "uv run celery -A agents.tasks.celery_app worker --loglevel=info",
+    "dev:beat": "uv run celery -A agents.tasks.celery_app beat --loglevel=info",
+    "start": "uv run python -m agents.main",
+    "build": "echo 'No build step for Python'",
+    "lint": "uv run ruff check . && uv run mypy .",
+    "format": "uv run ruff format . && uv run isort .",
+    "typecheck": "uv run mypy .",
+    "test": "uv run pytest",
+    "test:watch": "uv run pytest --watch",
+    "test:coverage": "uv run pytest --cov=src --cov-report=html",
+    "pre-commit": "uv run pre-commit run --all-files"
+  }
+}

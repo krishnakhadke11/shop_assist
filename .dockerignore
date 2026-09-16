@@ -1,0 +1,33 @@
+# Local tooling / VCS
+.git
+.gitignore
+.vscode
+node_modules
+**/node_modules
+**/.next
+**/out
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Python
+**/.venv
+**/__pycache__
+**/*.pyc
+*.egg-info
+**/*.egg-info
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+
+# Secrets - never ship these into an image
+**/.env
+**/.env.local
+.DS_Store
+
+# Graphify output
+graphify-out
+
+# Misc build artifacts
+**/dist
+**/coverage
+**/public/metrics

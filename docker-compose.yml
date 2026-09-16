@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shop-assist-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shop_assist
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: shop-assist-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: shop-assist-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/shop_assist
+      SECRET_KEY: your-super-secret-key-change-in-production-min-32-chars
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/backend:/app
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: shop-assist-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+  agents:
+    build:
+      context: ./apps/agents
+      dockerfile: Dockerfile
+    container_name: shop-assist-agents
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      BACKEND_API_URL: http://backend:8000/api/v1
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      WHISPER_MODEL: base
+      LOG_LEVEL: INFO
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/agents:/app
+    command: python -m agents.main
+    # For voice agent, you may need: --device /dev/snd --group-add audio
+
+  agents-worker:
+    build:
+      context: ./apps/agents
+      dockerfile: Dockerfile
+    container_name: shop-assist-agents-worker
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      BACKEND_API_URL: http://backend:8000/api/v1
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      LOG_LEVEL: INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/agents:/app
+    command: celery -A agents.tasks.celery_app worker --loglevel=info
+
+  agents-beat:
+    build:
+      context: ./apps/agents
+      dockerfile: Dockerfile
+    container_name: shop-assist-agents-beat
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/agents:/app
+    command: celery -A agents.tasks.celery_app beat --loglevel=info
+
+volumes:
+  postgres_data:
+  redis_data:

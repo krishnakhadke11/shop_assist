@@ -1,0 +1,41 @@
+{
+  "name": "shop-assist",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:agents\"",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "dev:agents": "npm run dev --workspace=apps/agents",
+    "dev:agents:voice": "npm run dev:voice --workspace=apps/agents",
+    "dev:agents:chat": "npm run dev:chat --workspace=apps/agents",
+    "dev:agents:worker": "npm run dev:worker --workspace=apps/agents",
+    "build": "npm run build --workspaces",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "build:agents": "npm run build --workspace=apps/agents",
+    "lint": "npm run lint --workspaces",
+    "lint:frontend": "npm run lint --workspace=apps/frontend",
+    "lint:backend": "npm run lint --workspace=apps/backend",
+    "lint:agents": "npm run lint --workspace=apps/agents",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces",
+    "test:frontend": "npm run test --workspace=apps/frontend",
+    "test:backend": "npm run test --workspace=apps/backend",
+    "test:agents": "npm run test --workspace=apps/agents",
+    "db:push": "npm run db:push --workspace=apps/backend",
+    "db:studio": "npm run db:studio --workspace=apps/backend",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "packageManager": "npm@10.2.0"
+}

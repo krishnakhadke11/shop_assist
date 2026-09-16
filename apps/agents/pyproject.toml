@@ -1,0 +1,110 @@
+[project]
+name = "shop-assist-agents"
+version = "1.0.0"
+description = "Shop Assist AI Agents - Voice, Chat, and Task Automation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Core
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.26.0",
+    "tenacity>=8.2.0",
+    # LLM Providers
+    "openai>=1.12.0",
+    "anthropic>=0.18.0",
+    "langchain-core>=0.1.0",
+    "langchain-openai>=0.0.5",
+    "langchain-anthropic>=0.1.0",
+    # Agent Frameworks
+    "langgraph>=0.0.20",
+    "langchain>=0.1.0",
+    # Voice — LiveKit room agent (src/agents/voice/livekit_agent.py), Gemini Live API
+    "livekit-agents>=1.0",
+    "livekit-plugins-google>=1.8.0",
+    "livekit-plugins-deepgram>=1.0.0",
+    # Async & Utilities
+    "asyncio-mqtt>=0.12.0",
+    "redis>=5.0.0",
+    "celery>=5.3.0",
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.12.0",
+    "httpx>=0.26.0",
+]
+
+[project.optional-dependencies]
+# Local-mic/local-Whisper CLI voice demo (src/agents/voice/__init__.py:VoiceAgent).
+# Split out because openai-whisper's torch/numba chain has no prebuilt wheels
+# on Intel macOS with recent versions — installing it forces a from-source
+# llvmlite build that fails without a local LLVM toolchain. Not needed for
+# the LiveKit voice agent, which has its own deps above.
+# Install with: uv sync --extra local-voice
+local-voice = [
+    "openai-whisper>=20231117",
+    "pydub>=0.25.1",
+    "sounddevice>=0.4.6",
+    "numpy>=1.26.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "black>=23.0.0",
+    "isort>=5.13.0",
+    "pre-commit>=3.6.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "T20"]
+ignore = ["E501"]
+exclude = [".venv", "__pycache__", "migrations", ".mypy_cache"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict = true
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
