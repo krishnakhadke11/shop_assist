@@ -1,6 +1,6 @@
-from pydantic_settings import BaseSettings
-from typing import List, Optional
 from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AgentSettings(BaseSettings):
@@ -57,11 +57,18 @@ class AgentSettings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"
+    # PostgreSQL Configuration
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "shop_assistant"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = ""
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
 
 settings = AgentSettings()

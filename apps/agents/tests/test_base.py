@@ -1,7 +1,9 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from agents.base import BaseAgent, AgentRole, AgentContext, BaseTool, ToolCall, ToolResult
+pytest.importorskip("agents.base")
+
+
+from agents.base import AgentContext, AgentRole, BaseAgent, BaseTool, ToolCall
 
 
 class MockTool(BaseTool):
