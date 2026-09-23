@@ -34,5 +34,5 @@ async def test_list_products(client):
 
 @pytest.mark.asyncio
 async def test_get_product_not_found(client):
-    response = await client.get("/api/v1/products/00000000-0000-0000-0000-000000000000")
+    response = await client.get("/api/v1/products/9999999")
     assert response.status_code == 404

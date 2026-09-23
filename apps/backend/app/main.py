@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.api.v1 import products
+from app.api.v1 import products, orders
 from app.db.session import init_db
 
 
@@ -29,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(products.router, prefix=settings.API_V1_PREFIX, tags=["products"])
+app.include_router(orders.router, prefix=settings.API_V1_PREFIX, tags=["orders"])
 
 
 @app.get("/health")

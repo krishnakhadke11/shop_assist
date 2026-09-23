@@ -57,7 +57,47 @@ export default function CallPage({ params }: { params: { merchantId: string } })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [merchant?.id]);
 
+  const [callEnded, setCallEnded] = useState(false);
+
+  const handleEndCall = () => {
+    setCallEnded(true);
+  };
+
   const goBack = () => router.replace('/');
+  const goToOrders = () => router.replace('/orders');
+
+  if (callEnded) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-ink text-white px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-brand/20 flex items-center justify-center text-3xl">
+          📞
+        </div>
+        <div>
+          <h2 className="text-xl font-black mb-1">Call Ended</h2>
+          <p className="text-xs text-white/70">With {merchant?.name || 'Shop'}</p>
+        </div>
+        <p className="text-sm text-white/80 max-w-xs">
+          If you placed an order during the call, you can track it live in the Orders tab.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
+          <button
+            type="button"
+            onClick={goToOrders}
+            className="w-full py-3.5 rounded-xl bg-brand text-white font-bold text-sm hover:bg-brand-strong transition-all shadow-md active:scale-95"
+          >
+            Track in Orders Tab →
+          </button>
+          <button
+            type="button"
+            onClick={goBack}
+            className="w-full py-2.5 rounded-xl border border-white/20 bg-white/5 text-white/80 text-xs font-semibold hover:bg-white/10"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!merchant) {
     return (
@@ -96,10 +136,10 @@ export default function CallPage({ params }: { params: { merchantId: string } })
       connect
       audio
       video={false}
-      onDisconnected={goBack}
+      onDisconnected={handleEndCall}
       onError={(err) => setError(err.message)}
     >
-      <CallScreen merchant={merchant} onEndCall={goBack} />
+      <CallScreen merchant={merchant} onEndCall={handleEndCall} />
     </LiveKitRoom>
   );
 }

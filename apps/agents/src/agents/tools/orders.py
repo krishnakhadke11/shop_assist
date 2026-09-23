@@ -17,7 +17,17 @@ async def create_order(
     delivery_address_id: int | None = None,
     status: str = "PENDING",
 ) -> dict[str, Any]:
-    """Create a new customer order with line items and inventory reservations atomically."""
+    """Create a new customer order with line items and inventory reservations atomically.
+
+    Args:
+        order_id: Unique order identifier string (e.g. 'ORD-20260923-ABC123').
+        customer_id: Database ID of the customer placing the order.
+        items: List of line item dicts. Each dict must include 'product_id' (int) and
+               optional 'quantity' (int, default 1), 'unit_price' (float, fetched from catalog if omitted),
+               'name' (str, fetched from catalog if omitted), and 'unit' (str, fetched from catalog if omitted).
+        delivery_address_id: Optional ID of the delivery address.
+        status: Initial order status (default 'PENDING').
+    """
     logger.info(
         "[TOOL: create_order] Creating order_id=%r for customer_id=%d with %d item(s), delivery_address_id=%s, status=%s",
         order_id,
@@ -30,29 +40,53 @@ async def create_order(
         logger.error("[TOOL: create_order] Failed: Order must contain at least one item")
         raise ValueError("Order must contain at least one item")
 
-    total_amount = Decimal("0.00")
-    formatted_items: list[dict[str, Any]] = []
-    for item in items:
-        item_prod_id = int(item["product_id"])
-        item_qty = int(item.get("quantity", 1))
-        item_unit_price = float(Decimal(str(item.get("unit_price", 0))))
-        item_subtotal = round(item_qty * item_unit_price, 2)
-        total_amount += Decimal(str(item_subtotal))
-        formatted_items.append(
-            {
-                "product_id": item_prod_id,
-                "quantity": item_qty,
-                "unit_price": item_unit_price,
-                "subtotal": item_subtotal,
-            }
-        )
-
-    logger.info(
-        "[TOOL: create_order] Calculated total amount for order %r: ₹%s", order_id, total_amount
-    )
-
     async with await get_connection() as connection:
         async with connection.cursor() as cursor:
+            total_amount = Decimal("0.00")
+            formatted_items: list[dict[str, Any]] = []
+
+            for item in items:
+                item_prod_id = int(item["product_id"])
+                item_qty = int(item.get("quantity", 1))
+
+                # Look up product in catalog to fetch authoritative price, name, and unit if not provided
+                await cursor.execute(
+                    """
+                    SELECT name, unit, price
+                    FROM products
+                    WHERE id = %s
+                    """,
+                    (item_prod_id,),
+                )
+                prod_row = await cursor.fetchone()
+
+                if item.get("unit_price") is not None and float(item["unit_price"]) > 0:
+                    item_unit_price = float(Decimal(str(item["unit_price"])))
+                elif prod_row and prod_row["price"] is not None:
+                    item_unit_price = float(Decimal(str(prod_row["price"])))
+                else:
+                    item_unit_price = 0.0
+
+                item_name = item.get("name") or (prod_row["name"] if prod_row else None)
+                item_unit = item.get("unit") or (prod_row["unit"] if prod_row else "item")
+                item_subtotal = round(item_qty * item_unit_price, 2)
+                total_amount += Decimal(str(item_subtotal))
+
+                formatted_items.append(
+                    {
+                        "product_id": item_prod_id,
+                        "name": item_name,
+                        "unit": item_unit,
+                        "quantity": item_qty,
+                        "unit_price": item_unit_price,
+                        "subtotal": item_subtotal,
+                    }
+                )
+
+            logger.info(
+                "[TOOL: create_order] Calculated total amount for order %r: ₹%s", order_id, total_amount
+            )
+
             # 1. Insert order
             await cursor.execute(
                 """
@@ -67,13 +101,15 @@ async def create_order(
                 line_prod_id: int = int(line_item["product_id"])
                 line_qty: int = int(line_item["quantity"])
                 line_unit_price: float = float(line_item["unit_price"])
+                line_name: str | None = line_item.get("name")
+                line_unit: str | None = line_item.get("unit")
 
                 await cursor.execute(
                     """
-                    INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO order_items (order_id, product_id, quantity, unit_price, item_name, unit)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     """,
-                    (order_id, line_prod_id, line_qty, line_unit_price),
+                    (order_id, line_prod_id, line_qty, line_unit_price, line_name, line_unit),
                 )
 
                 # Update product reserved quantity

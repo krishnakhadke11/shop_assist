@@ -99,8 +99,11 @@ CREATE TABLE IF NOT EXISTS order_items (
         REFERENCES orders(id)
         ON DELETE CASCADE,
 
-    product_id BIGINT NOT NULL
+    product_id BIGINT
         REFERENCES products(id),
+
+    item_name VARCHAR(255),
+    unit VARCHAR(50) DEFAULT 'item',
 
     quantity INTEGER NOT NULL
         CHECK (quantity > 0),

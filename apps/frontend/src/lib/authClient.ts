@@ -40,10 +40,12 @@ interface PendingOtp {
 }
 
 export function setPendingOtp(pending: PendingOtp) {
+  if (typeof window === 'undefined') return;
   sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
 }
 
 export function getPendingOtp(): PendingOtp | null {
+  if (typeof window === 'undefined') return null;
   const raw = sessionStorage.getItem(PENDING_KEY);
   if (!raw) return null;
   try {
@@ -54,6 +56,7 @@ export function getPendingOtp(): PendingOtp | null {
 }
 
 export function clearPendingOtp() {
+  if (typeof window === 'undefined') return;
   sessionStorage.removeItem(PENDING_KEY);
 }
 
@@ -67,10 +70,12 @@ export interface Session {
 // localStorage, not sessionStorage — a verified session should survive
 // a closed tab, unlike the in-progress OTP flow above.
 export function setSession(session: Session) {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
 export function getSession(): Session | null {
+  if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
@@ -81,5 +86,6 @@ export function getSession(): Session | null {
 }
 
 export function clearSession() {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(SESSION_KEY);
 }

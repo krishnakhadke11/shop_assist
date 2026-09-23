@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     API_V1_PREFIX: str = "/api/v1"
 
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/shop_assist"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/shop_assistant"
 
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"

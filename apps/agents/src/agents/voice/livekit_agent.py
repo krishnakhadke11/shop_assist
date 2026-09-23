@@ -35,9 +35,10 @@ from livekit.agents import (
     ToolExecutionUpdatedEvent,
     WorkerOptions,
     inference,
+    room_io,
 )
-from livekit.plugins.deepgram import STT
 from livekit.plugins import noise_cancellation, silero
+from livekit.plugins.deepgram import STT
 
 from agents.config import settings
 from agents.tools import (
@@ -234,7 +235,7 @@ async def entrypoint(ctx: JobContext) -> None:
                 create_order,
                 get_order,
                 list_customer_orders,
-                update_order_status,
+                # update_order_status,
                 find_product_by_name,
                 get_product_by_id,
                 list_active_products,
@@ -242,6 +243,11 @@ async def entrypoint(ctx: JobContext) -> None:
             ],
         ),
         room=ctx.room,
+        room_options=room_io.RoomOptions(
+            audio_input=room_io.AudioInputOptions(
+                noise_cancellation=noise_cancellation.BVC(),
+            ),
+        ),
     )
 
 

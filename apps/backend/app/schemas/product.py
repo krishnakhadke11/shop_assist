@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
 
@@ -8,7 +7,9 @@ from decimal import Decimal
 class ProductBase(BaseModel):
     name: str
     price: Decimal
-    description: Optional[str] = None
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    unit: str = "packet"
 
 
 class ProductCreate(ProductBase):
@@ -18,12 +19,14 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     price: Optional[Decimal] = None
-    description: Optional[str] = None
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    unit: Optional[str] = None
 
 
 class ProductResponse(ProductBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
+    id: int
     created_at: datetime
     updated_at: datetime

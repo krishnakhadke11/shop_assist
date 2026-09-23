@@ -6,6 +6,7 @@ import { getSession } from '@/lib/authClient';
 import { CATEGORIES, MERCHANTS, Merchant } from '@/lib/dummyData';
 import { CallButton, PhoneIcon } from '@/components/CallButton';
 import { LocationBar } from '@/components/LocationBar';
+import { BottomNav } from '@/components/BottomNav';
 
 function initials(name: string): string {
   const clean = name.trim();
@@ -242,33 +243,8 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Bottom nav — three tabs, not five (docs/shopassist-ui-plan.md §2) */}
-      <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200">
-        <div className="max-w-md mx-auto grid grid-cols-3">
-          <button type="button" className="flex flex-col items-center gap-0.5 py-2.5">
-            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-brand text-white">
-              🏠
-            </span>
-            <span className="text-xs font-bold text-brand-strong">Home</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleComingSoon('Orders')}
-            className="flex flex-col items-center gap-0.5 py-2.5"
-          >
-            <span className="text-xl">📋</span>
-            <span className="text-xs font-semibold text-ink/60">Orders</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleComingSoon('Profile')}
-            className="flex flex-col items-center gap-0.5 py-2.5"
-          >
-            <span className="text-xl">👤</span>
-            <span className="text-xs font-semibold text-ink/60">Profile</span>
-          </button>
-        </div>
-      </nav>
+      {/* Bottom nav */}
+      <BottomNav activeTab="home" />
     </main>
   );
 }

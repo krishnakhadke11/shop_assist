@@ -24,7 +24,7 @@ async def list_products(
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
 async def get_product(
-    product_id: UUID,
+    product_id: int,
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
@@ -48,7 +48,7 @@ async def create_product(
 
 @router.patch("/products/{product_id}", response_model=ProductResponse)
 async def update_product(
-    product_id: UUID,
+    product_id: int,
     product_in: ProductUpdate,
     db: AsyncSession = Depends(get_db),
 ):
@@ -68,7 +68,7 @@ async def update_product(
 
 @router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(
-    product_id: UUID,
+    product_id: int,
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
